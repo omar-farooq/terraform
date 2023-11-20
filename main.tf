@@ -16,17 +16,24 @@ terraform {
   }
 }
 
-provider "aws" {
-  region  = "eu-west-2"
-  profile = "default"
-}
-
-provider "cloudflare" {
-  api_token = var.cloudflare_api_token
-}
-
 module "omar-website-frontend" {
   source               = "./modules/static-site"
   site_domain          = "omar.earth"
   cloudflare_api_token = var.cloudflare_api_token
+}
+
+module "omar-website-form-function" {
+  source        = "./modules/functions"
+  function_name = "omar-earth-form"
+  image_uri     = "${module.gomar-repository.uri}:latest"
+  envs = {
+    EMAIL_TO   = "omrrrrrrr@gmail.com"
+    EMAIL_FROM = "form@omar.earth"
+  }
+  function_url = true
+}
+
+module "gomar-repository" {
+  source = "./modules/repositories"
+  name   = "gomar"
 }
