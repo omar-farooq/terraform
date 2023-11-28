@@ -36,6 +36,7 @@ resource "aws_lambda_function" "lambda" {
 	image_uri = var.image_uri
 	function_name = var.function_name
 	role = aws_iam_role.iam_for_lambda.arn
+    publish = true
 
 	environment {
 		variables = var.envs

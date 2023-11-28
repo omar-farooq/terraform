@@ -5,7 +5,7 @@ resource "aws_acm_certificate" "request" {
 
 data "cloudflare_zones" "domain" {
     filter {
-        name = var.site_domain
+        name = var.apex
     }
 }
 

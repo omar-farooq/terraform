@@ -12,7 +12,7 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
 
   enabled = true
   is_ipv6_enabled = true
-  comment = "Omar personal website"
+  comment = var.comment
   default_root_object = "index.html"
 
   aliases = var.aliases
@@ -28,6 +28,11 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
     min_ttl                = 0
     default_ttl            = 0
     max_ttl                = 0
+
+    function_association {
+      event_type = "viewer-request"
+      function_arn = var.add_html_ext_arn
+    }
   }
 
   price_class = "PriceClass_100"

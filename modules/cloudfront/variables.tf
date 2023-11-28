@@ -22,3 +22,13 @@ variable "comment" {
     description = "Optional comments about this distribution"
     default = ""
 }
+
+variable "add_html_ext_arn" {
+    type = string
+    description = "Add the cloudfront function to add html extensions to pages"
+}
+
+variable "contact_lambda" {
+    type = string
+    description = "Add the lambda for the contact form to be available at the edge"
+}
