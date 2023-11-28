@@ -24,7 +24,7 @@ provider "aws" {
 module "omar-site-certificate" {
   source               = "./modules/certificates"
   site_domain          = "omar.earth"
-  apex = "omar.earth"
+  apex                 = "omar.earth"
   cloudflare_api_token = var.cloudflare_api_token
   providers = {
     aws = aws.us-east-1
@@ -34,7 +34,7 @@ module "omar-site-certificate" {
 module "omar-api-certificate" {
   source               = "./modules/certificates"
   site_domain          = "api.omar.earth"
-  apex = "omar.earth"
+  apex                 = "omar.earth"
   cloudflare_api_token = var.cloudflare_api_token
   providers = {
     aws = aws.us-east-1
@@ -61,7 +61,7 @@ module "omar-website-cloudfront-distribution" {
   aliases          = ["omar.earth"]
   comment          = "Omar personal website"
   add_html_ext_arn = module.add-html-ext.arn
-  contact_lambda = module.omar-website-form-function.lambda_arn
+  contact_lambda   = module.omar-website-form-function.lambda_arn
 }
 
 module "omar-website-form-function" {
@@ -92,7 +92,7 @@ module "gomar-repository" {
 
 module "api-omar-earth" {
   source = "./modules/api-domains"
-  cert = module.omar-api-certificate.certificate_arn
+  cert   = module.omar-api-certificate.certificate_arn
   domain = "api.omar.earth"
 }
 
