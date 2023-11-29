@@ -18,6 +18,7 @@ module "omar-api-certificate" {
 module "omar-website-frontend" {
   source               = "./modules/static-site"
   site_domain          = "omar.earth"
+  cloudfront_distribution = module.omar-website-cloudfront-distribution.distribution_arn
   cloudflare_api_token = var.cloudflare_api_token
 }
 
@@ -29,7 +30,7 @@ module "add-html-ext" {
 
 module "omar-website-cloudfront-distribution" {
   source           = "./modules/cloudfront"
-  origin_domain    = module.omar-website-frontend.bucket_website_endpoint
+  origin_domain    = module.omar-website-frontend.bucket_domain
   origin_id        = module.omar-website-frontend.bucket_id
   cert             = module.omar-site-certificate.certificate_arn
   aliases          = ["omar.earth"]

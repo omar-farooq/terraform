@@ -1,6 +1,5 @@
-output "bucket_website_endpoint" {
-  description = "The website endpoint of the bucket rather than the bucket domain"
-  value = aws_s3_bucket_website_configuration.site.website_endpoint
+output "bucket_domain" {
+  value = aws_s3_bucket.site.bucket_regional_domain_name
 }
 
 output "bucket_id" {
