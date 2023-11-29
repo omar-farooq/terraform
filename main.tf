@@ -36,9 +36,6 @@ module "omar-api-certificate" {
   site_domain          = "api.omar.earth"
   apex                 = "omar.earth"
   cloudflare_api_token = var.cloudflare_api_token
-  providers = {
-    aws = aws.us-east-1
-  }
 }
 
 module "omar-website-frontend" {
@@ -101,7 +98,18 @@ module "omar-api-dns-record" {
   cloudflare_api_token = var.cloudflare_api_token
   site_domain          = "omar.earth"
   record_name          = "api.omar.earth"
-  record_value         = module.api-omar-earth.cloudfront_domain
+  record_value         = module.api-omar-earth.target_domain
   record_type          = "CNAME"
   proxied              = false
 }
+
+/*
+module "api-omar-earth-gw" {
+  source = "./modules/api-gateways"
+  name = "omar-contact-form"
+  title = "omar api gateway"
+  path = "contact"
+  lambda_invoke_arn = module.omar-website-form-function.invoke_arn
+  lambda_name = module.omar-website-form-function.function_name
+}
+*/
