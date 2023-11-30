@@ -47,7 +47,6 @@ module "omar-website-form-function" {
     EMAIL_TO   = "omrrrrrrr@gmail.com"
     EMAIL_FROM = "form@omar.earth"
   }
-  function_url = true
 }
 
 module "omar-earth-dns-record" {
@@ -82,12 +81,20 @@ module "omar-api-dns-record" {
 }
 
 module "omar-contact-form-gateway" {
-  source = "./modules/lambda-http-api-gw"
+  source = "./modules/lambda-rest-api-gw"
   name = "contact"
-  description = "Contact Form for omar.earth"
-  route_key = "POST /contact"
+  path_part = "contact"
   lambda_invoke_arn = module.omar-website-form-function.invoke_arn
   lambda_fn_name = module.omar-website-form-function.function_name
+  domain_name = "api.omar.earth"
+}
+
+module "contact-form-usage" {
+  source = "./modules/gw-usage-plans"
+  name = "contact-form-limits"
+  api_id = module.omar-contact-form-gateway.gw_id
+  stage_name = module.omar-contact-form-gateway.stage_name
+  key_name = "contact-key"
 }
 
 resource "aws_ses_email_identity" "omar" {
