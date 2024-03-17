@@ -1,5 +1,28 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+    cloudflare = {
+      source  = "cloudflare/cloudflare"
+      version = "~> 4.0"
+    }
+  }
+  backend "s3" {
+    bucket = "omar-terraform"
+    key    = "state/terraform.tfstate"
+    region = "eu-west-2"
+  }
+}
+
+provider "aws" {
+  region = "us-east-1"
+  alias  = "us-east-1"
+}
+
 module "omar-site-certificate" {
-  source               = "./modules/certificates"
+  source               = "../modules/certificates"
   site_domain          = "omar.earth"
   apex                 = "omar.earth"
   cloudflare_api_token = var.cloudflare_api_token
@@ -9,27 +32,27 @@ module "omar-site-certificate" {
 }
 
 module "omar-api-certificate" {
-  source               = "./modules/certificates"
+  source               = "../modules/certificates"
   site_domain          = "api.omar.earth"
   apex                 = "omar.earth"
   cloudflare_api_token = var.cloudflare_api_token
 }
 
 module "omar-website-frontend" {
-  source               = "./modules/static-site"
+  source               = "../modules/static-site"
   site_domain          = "omar.earth"
   cloudfront_distribution = module.omar-website-cloudfront-distribution.distribution_arn
   cloudflare_api_token = var.cloudflare_api_token
 }
 
 module "add-html-ext" {
-  source = "./modules/cloudfront-functions"
+  source = "../modules/cloudfront-functions"
   name   = "add-html-ext"
   file   = "add-html-ext.js"
 }
 
 module "omar-website-cloudfront-distribution" {
-  source           = "./modules/cloudfront"
+  source           = "../modules/cloudfront"
   origin_domain    = module.omar-website-frontend.bucket_domain
   origin_id        = module.omar-website-frontend.bucket_id
   cert             = module.omar-site-certificate.certificate_arn
@@ -40,7 +63,7 @@ module "omar-website-cloudfront-distribution" {
 }
 
 module "omar-website-form-function" {
-  source        = "./modules/functions"
+  source        = "../modules/functions"
   function_name = "omar-earth-form"
   image_uri     = "${module.gomar-repository.uri}:latest"
   envs = {
@@ -50,7 +73,7 @@ module "omar-website-form-function" {
 }
 
 module "omar-earth-dns-record" {
-  source               = "./modules/dns"
+  source               = "../modules/dns"
   cloudflare_api_token = var.cloudflare_api_token
   site_domain          = "omar.earth"
   record_name          = "omar.earth"
@@ -60,18 +83,18 @@ module "omar-earth-dns-record" {
 }
 
 module "gomar-repository" {
-  source = "./modules/repositories"
+  source = "../modules/repositories"
   name   = "gomar"
 }
 
 module "api-omar-earth" {
-  source = "./modules/api-domains"
+  source = "../modules/api-domains"
   cert   = module.omar-api-certificate.certificate_arn
   domain = "api.omar.earth"
 }
 
 module "omar-api-dns-record" {
-  source               = "./modules/dns"
+  source               = "../modules/dns"
   cloudflare_api_token = var.cloudflare_api_token
   site_domain          = "omar.earth"
   record_name          = "api.omar.earth"
@@ -81,7 +104,7 @@ module "omar-api-dns-record" {
 }
 
 module "omar-contact-form-gateway" {
-  source = "./modules/lambda-rest-api-gw"
+  source = "../modules/lambda-rest-api-gw"
   name = "contact"
   path_part = "contact"
   lambda_invoke_arn = module.omar-website-form-function.invoke_arn
@@ -90,7 +113,7 @@ module "omar-contact-form-gateway" {
 }
 
 module "contact-form-usage" {
-  source = "./modules/gw-usage-plans"
+  source = "../modules/gw-usage-plans"
   name = "contact-form-limits"
   api_id = module.omar-contact-form-gateway.gw_id
   stage_name = module.omar-contact-form-gateway.stage_name

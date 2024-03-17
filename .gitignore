@@ -18,6 +18,8 @@
 
 # Ignored Terraform files
 *gitignore*.tf
+.terraform.lock.hcl
+planfile
 
 # Ignore Mac .DS_Store files
 .DS_Store
