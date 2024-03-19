@@ -104,14 +104,36 @@ resource "aws_ec2_instance_connect_endpoint" "this" {
   security_group_ids    = [module.webserver_security_group.security_group_id]
 }
 
-#resource "cloudflare_zone" "zah" {
-#  zone = "zah.org.uk"
-#}
-#
-#resource "cloudflare_record" "zah" {
-#  zone_id   = module.cloudflare_zone.zah.id
-#  name      = "zah.org.uk"
-#  type      = "A"
-#  proxied   = true
-#  value     = module.webserver_ec2_instance.ipv6_addresses
-#}
+resource "aws_key_pair" "omar" {
+  key_name      = "omar-local"
+  public_key    = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDXBx2MUZYqIbpZWbOwfWEwAuM5J+hVC/unk7gLbYArl44v/CcY6JkWb4DMGN4XXk3dsRLHaIRtcci6d5z5g7opWB43lae/F/ucDRsF0y1hDwqgz9+ZVgvidET1wTe+x68/tLhdx78KofMhV9LI23uQHITYtdc8dhfYD5vInjV4ShhckSU3FVAQSwtJYM5gsAwzR5QbfXDeggamm/NQCFmYu66ShoXZKui1rPYTOK/NMzMUlw9dAafmJcvwUvs95FvAMFANOoZBi0Um7gfIY8OA4WMXFkXo3G0/NYPzt3iXAt61GTs/zJlZODeKYGCy8ZbwyxUcrAKgk9BRF/teaHZjnFhif9RsQ79nK0TK5L0CjsobYGYDK5cgXeATUkF1DVmr5kXHHlWoea1/Cr9u3WuiKv/0/mSgIm5g/R0FTkddJb9mlb/RnsW5FKrwanjMtOLsU8AskQCP2kWwurUU2TyvBWgPOf+25mxva9kuyEhKcFwdwbN+OmCqyirJN28c0l8= omar@omar-ubuntu"
+}
+
+resource "cloudflare_zone" "zah" {
+  account_id    = "c481cd0068116b3efb7c163c8d2a0b38"
+  zone          = "zah.org.uk"
+}
+
+resource "cloudflare_record" "zah" {
+  zone_id   = cloudflare_zone.zah.id
+  name      = "zah.org.uk"
+  type      = "AAAA"
+  proxied   = true
+  value     = module.webserver_ec2_instance.ipv6_addresses[0]
+}
+
+resource "cloudflare_record" "socket" {
+  zone_id   = cloudflare_zone.zah.id
+  name      = "socket"
+  type      = "AAAA"
+  proxied   = true
+  value     = module.webserver_ec2_instance.ipv6_addresses[0]
+}
+
+resource "cloudflare_record" "www" {
+  zone_id   = cloudflare_zone.zah.id
+  name      = "www"
+  type      = "AAAA"
+  proxied   = true
+  value     = module.webserver_ec2_instance.ipv6_addresses[0]
+}
