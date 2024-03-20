@@ -82,7 +82,7 @@ module "webserver_security_group" {
 module "webserver_ec2_instance" {
   source        = "terraform-aws-modules/ec2-instance/aws"
   name          = "zahws"
-  ami           = data.aws_ami.ubuntu.id
+  ami           = "ami-0b9932f4918a00c4f"
 
   availability_zone           = element(local.azs, 0)
   subnet_id                   = element(module.vpc.public_subnets, 0)
@@ -97,6 +97,13 @@ module "webserver_ec2_instance" {
       volume_size   = 12
     },
   ]
+}
+
+module "zah_bucket" {
+  source            = "terraform-aws-modules/s3-bucket/aws"
+  bucket            = "zah-storage"
+  object_ownership  = "BucketOwnerEnforced"
+
 }
 
 resource "aws_ec2_instance_connect_endpoint" "this" {
