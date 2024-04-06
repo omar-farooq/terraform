@@ -116,6 +116,11 @@ resource "aws_key_pair" "omar" {
   public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDXBx2MUZYqIbpZWbOwfWEwAuM5J+hVC/unk7gLbYArl44v/CcY6JkWb4DMGN4XXk3dsRLHaIRtcci6d5z5g7opWB43lae/F/ucDRsF0y1hDwqgz9+ZVgvidET1wTe+x68/tLhdx78KofMhV9LI23uQHITYtdc8dhfYD5vInjV4ShhckSU3FVAQSwtJYM5gsAwzR5QbfXDeggamm/NQCFmYu66ShoXZKui1rPYTOK/NMzMUlw9dAafmJcvwUvs95FvAMFANOoZBi0Um7gfIY8OA4WMXFkXo3G0/NYPzt3iXAt61GTs/zJlZODeKYGCy8ZbwyxUcrAKgk9BRF/teaHZjnFhif9RsQ79nK0TK5L0CjsobYGYDK5cgXeATUkF1DVmr5kXHHlWoea1/Cr9u3WuiKv/0/mSgIm5g/R0FTkddJb9mlb/RnsW5FKrwanjMtOLsU8AskQCP2kWwurUU2TyvBWgPOf+25mxva9kuyEhKcFwdwbN+OmCqyirJN28c0l8= omar@omar-ubuntu"
 }
 
+module "sqs" {
+    source  = "terraform-aws-modules/sqs/aws"
+    name = "default"
+}
+
 resource "cloudflare_zone" "zah" {
   account_id = "c481cd0068116b3efb7c163c8d2a0b38"
   zone       = "zah.org.uk"
@@ -143,4 +148,49 @@ resource "cloudflare_record" "www" {
   type    = "AAAA"
   proxied = true
   value   = module.webserver_ec2_instance.ipv6_addresses[0]
+}
+
+resource "cloudflare_record" "zoho" {
+  zone_id = cloudflare_zone.zah.id
+  name    = "@"
+  type    = "TXT"
+  value   = "zoho-verification=zb06288753.zmverify.zoho.eu"
+}
+
+resource "cloudflare_record" "zoho_mx_1" {
+  zone_id   = cloudflare_zone.zah.id
+  name      = "@"
+  type      = "MX"
+  value     = "mx.zoho.eu"
+  priority  = "10"
+}
+
+resource "cloudflare_record" "zoho_mx_2" {
+  zone_id   = cloudflare_zone.zah.id
+  name      = "@"
+  type      = "MX"
+  value     = "mx2.zoho.eu"
+  priority  = "20"
+}
+
+resource "cloudflare_record" "zoho_mx_3" {
+  zone_id   = cloudflare_zone.zah.id
+  name      = "@"
+  type      = "MX"
+  value     = "mx3.zoho.eu"
+  priority  = "50"
+}
+
+resource "cloudflare_record" "spf" {
+  zone_id = cloudflare_zone.zah.id
+  name    = "@"
+  type    = "TXT"
+  value   = "v=spf1 include:zohomail.eu ~all"
+}
+
+resource "cloudflare_record" "zoho_dkim" {
+  zone_id = cloudflare_zone.zah.id
+  name    = "zmail._domainkey"
+  type    = "TXT"
+  value   = "v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC9BpAbUYe2+B3bVWzBVcRpy0okkbPxgyeaH5TM963gPFlKFxkiteyktfDkS72Q6PN7ZFfSwfZ3S/yL2bQ22eifBPY57v0P9bJWdYvWebRJ8TgUm5L6V6LDpF5fKfxMdOfhQ9gsCQaJZj+iPjpSa8306ozCl0jojKTxrSikaeOq+wIDAQAB"
 }
