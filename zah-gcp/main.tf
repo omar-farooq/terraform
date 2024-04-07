@@ -1,8 +1,7 @@
 terraform {
   backend "gcs" {
     credentials = "~/auth/google-key.json"
-    bucket  = "zah-housing"
-    prefix  = "terraform/state"
+    bucket  = "zah-terraform"
   }
 }
 
@@ -140,6 +139,12 @@ resource "google_compute_instance" "zah" {
   lifecycle {
     ignore_changes = [attached_disk]
   }
+}
+
+resource "google_storage_bucket" "zah_housing" {
+  name = "zah-housing"
+  location = "us-east1"
+  uniform_bucket_level_access = true
 }
 
 resource "cloudflare_zone" "zah" {
