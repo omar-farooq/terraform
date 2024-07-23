@@ -1,33 +1,10 @@
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
-    }
-    cloudflare = {
-      source  = "cloudflare/cloudflare"
-      version = "~> 4.0"
-    }
-  }
-  backend "s3" {
-    bucket = "omar-terraform"
-    key    = "state/terraform.tfstate"
-    region = "eu-west-2"
-  }
-}
-
-provider "aws" {
-  region = "us-east-1"
-  alias  = "us-east-1"
-}
-
 module "omar-site-certificate" {
   source               = "../modules/certificates"
   site_domain          = "omar.earth"
   apex                 = "omar.earth"
   cloudflare_api_token = var.cloudflare_api_token
   providers = {
-    aws = aws.us-east-1
+    aws = aws.us_east_1
   }
 }
 
@@ -120,6 +97,8 @@ module "contact-form-usage" {
   key_name = "contact-key"
 }
 
+### Email configuration ###
+
 resource "aws_ses_email_identity" "omar" {
   email = "omrrrrrrr@gmail.com"
 }
@@ -169,4 +148,51 @@ resource "cloudflare_record" "omar_earth_amazonses_dkim_record" {
   type    = "CNAME"
   ttl     = "600"
   value   = "${aws_ses_domain_dkim.omar_earth.dkim_tokens[count.index]}.dkim.amazonses.com"
+}
+
+### GITHUB IAM for CICD ###
+module "github_oidc" {
+  source            = "../modules/aws_iam_oidc"
+  provider_tls_url  = "tls://token.actions.githubusercontent.com:443"
+  provider_url      = "https://token.actions.githubusercontent.com"
+  aud_value         = "sts.amazonaws.com"
+  conditions        = [
+    {
+      test      = "StringEquals",
+      variable  = "token.actions.githubusercontent.com:aud",
+      values    = ["sts.amazonaws.com"]
+    },
+    {
+      test      = "StringEquals",
+      variable  = "token.actions.githubusercontent.com:sub",
+      values    = ["repo:omar-farooq/omar.earth:ref:refs/heads/main"]
+    }
+  ]
+}
+
+resource "aws_iam_policy" "s3_read" {
+  name = "AmazonS3Deploy"
+
+  policy = jsonencode({
+    Version     = "2012-10-17"
+    Statement   = [
+      {
+        Action   = ["s3:ListBucket", "s3:PutObject", "s3:DeleteObject", "s3:GetObject", "s3:ListMultipartUploadParts", "s3:AbortMultipartUpload"]
+        Effect   = "Allow"
+        Resource = "*"
+      },
+      {
+        Action   = ["cloudfront:CreateInvalidation"]
+        Effect   = "Allow"
+        Resource = module.omar-website-cloudfront-distribution.distribution_arn
+      },
+    ]
+  })
+}
+
+resource "aws_iam_role" "github_actions" {
+  name_prefix         = "GHActions"
+  assume_role_policy  = module.github_oidc.assume_role_policy
+  managed_policy_arns = [aws_iam_policy.s3_read.arn]
+
 }

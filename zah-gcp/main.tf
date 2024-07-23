@@ -139,6 +139,11 @@ resource "google_compute_instance" "zah" {
   lifecycle {
     ignore_changes = [attached_disk]
   }
+
+  service_account {
+    email = "231388685322-compute@developer.gserviceaccount.com"
+    scopes = ["cloud-platform"]
+  }
 }
 
 resource "google_storage_bucket" "zah_housing" {
@@ -154,7 +159,7 @@ resource "cloudflare_zone" "zah" {
 
 resource "cloudflare_record" "sendgrid_cname_1" {
   zone_id = cloudflare_zone.zah.id
-  name    = "url6295.zah.org.uk"
+  name    = "url2589.zah.org.uk"
   type    = "CNAME"
   value   = "sendgrid.net"
 }
@@ -168,7 +173,7 @@ resource "cloudflare_record" "sendgrid_cname_2" {
 
 resource "cloudflare_record" "sendgrid_cname_3" {
   zone_id = cloudflare_zone.zah.id
-  name    = "em8466.zah.org.uk"
+  name    = "em1994.zah.org.uk"
   type    = "CNAME"
   value   = "u43635762.wl013.sendgrid.net"
 }
