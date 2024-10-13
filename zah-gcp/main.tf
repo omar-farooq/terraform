@@ -21,7 +21,7 @@ resource "google_service_account_key" "tf-key" {
 
 module "zah_project_services" {
   source = "../modules/gcp_project_services"
-  services = ["cloudresourcemanager.googleapis.com", "cloudbilling.googleapis.com", "compute.googleapis.com", "iam.googleapis.com", "storage.googleapis.com", "serviceusage.googleapis.com"]
+  services = ["cloudresourcemanager.googleapis.com", "cloudbilling.googleapis.com", "compute.googleapis.com", "iam.googleapis.com", "storage.googleapis.com", "serviceusage.googleapis.com", "artifactregistry.googleapis.com", "secretmanager.googleapis.com"]
 }
 
 module "projects_iam_bindings" {
@@ -39,7 +39,7 @@ module "projects_iam_bindings" {
       "serviceAccount:${google_service_account.zah-tf.email}",
     ]
 
-    "roles/viewer" = [
+    "roles/iam.workloadIdentityPoolAdmin" = [
       "serviceAccount:${google_service_account.zah-tf.email}",
     ]
 
@@ -48,6 +48,10 @@ module "projects_iam_bindings" {
     ]
 
     "roles/compute.securityAdmin" = [
+      "serviceAccount:${google_service_account.zah-tf.email}",
+    ]
+
+    "roles/editor" = [
       "serviceAccount:${google_service_account.zah-tf.email}",
     ]
   }
@@ -144,6 +148,53 @@ resource "google_compute_instance" "zah" {
     email = "231388685322-compute@developer.gserviceaccount.com"
     scopes = ["cloud-platform"]
   }
+}
+
+resource "google_artifact_registry_repository" "zah" {
+  location      = "us-east1"
+  repository_id = "zah"
+  description   = "repository for zah docker images"
+  format        = "DOCKER"
+}
+
+resource "google_iam_workload_identity_pool" "github" {
+  workload_identity_pool_id = "zah-github"
+  display_name              = "zah github identity pool"
+  description               = "Identity pool for github actions"
+  project                   = "zah-website" 
+}
+
+resource "google_iam_workload_identity_pool_provider" "github" {
+  workload_identity_pool_id             = google_iam_workload_identity_pool.github.workload_identity_pool_id
+  workload_identity_pool_provider_id    = "zah-github-provider"
+  display_name                          = "Zah Github OIDC provider"
+  attribute_condition                   = "assertion.repository_owner == 'omar-farooq'"
+  attribute_mapping                     = {
+    "google.subject"                = "assertion.sub"
+    "attribute.actor"               = "assertion.actor"
+    "attribute.repository"          = "assertion.repository"
+    "attribute.repository_owner"    = "assertion.repository_owner"
+  }
+  oidc {
+    issuer_uri = "https://token.actions.githubusercontent.com"
+  }
+}
+
+resource "google_secret_manager_secret" "secret-basic" {
+  secret_id = "zah-github-secret"
+
+  replication {
+    auto {}
+  }
+}
+
+resource "google_secret_manager_secret_iam_binding" "binding" {
+  project = "zah-website"
+  secret_id = google_secret_manager_secret.secret-basic.secret_id
+  role = "roles/secretmanager.secretAccessor"
+  members = [
+    "principalSet://iam.googleapis.com/projects/231388685322/locations/global/workloadIdentityPools/zah-github/attribute.repository/omar-farooq/zah"
+  ]
 }
 
 resource "google_storage_bucket" "zah_housing" {
