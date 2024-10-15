@@ -10,6 +10,11 @@ resource "google_service_account" "zah-tf" {
   display_name = "Zah Terraform Service Account"
 }
 
+resource "google_service_account" "zah_registry_user" {
+  account_id = "zah-registry-user"
+  display_name = "Artifact registry service account"
+}
+
 resource "google_service_account_key" "tf-key" {
   service_account_id    = google_service_account.zah-tf.name
 }
@@ -53,6 +58,14 @@ module "projects_iam_bindings" {
 
     "roles/editor" = [
       "serviceAccount:${google_service_account.zah-tf.email}",
+    ]
+
+    "roles/iam.serviceAccountTokenCreator" = [
+      "serviceAccount:${google_service_account.zah_registry_user.email}",
+    ]
+
+    "roles/artifactregistry.writer" = [
+      "serviceAccount:${google_service_account.zah_registry_user.email}",
     ]
   }
 }
@@ -194,6 +207,15 @@ resource "google_secret_manager_secret_iam_binding" "binding" {
   role = "roles/secretmanager.secretAccessor"
   members = [
     "principalSet://iam.googleapis.com/projects/231388685322/locations/global/workloadIdentityPools/zah-github/attribute.repository/omar-farooq/zah"
+  ]
+}
+
+resource "google_service_account_iam_binding" "artifact-sa" {
+  service_account_id = google_service_account.zah_registry_user.name 
+  role = "roles/iam.workloadIdentityUser"
+  
+  members = [
+    "principalSet://iam.googleapis.com/projects/231388685322/locations/global/workloadIdentityPools/zah-github/attribute.repository/omar-farooq/zah"    
   ]
 }
 
