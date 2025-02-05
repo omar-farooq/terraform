@@ -263,4 +263,21 @@ resource "cloudflare_record" "sendgrid_cname_5" {
   name    = "s2._domainkey.zah.org.uk"
   type    = "CNAME"
   value   = "s2.domainkey.u43635762.wl013.sendgrid.net"
+
+}
+
+resource "cloudflare_record" "zah_a" {
+  zone_id           = cloudflare_zone.zah.id
+  name              = "zah.org.uk"
+  type              = "A"
+  proxied           = true
+  value             = google_compute_instance.zah.network_interface.0.access_config.0.nat_ip
+}
+
+resource "cloudflare_record" "zah_www" {
+  zone_id           = cloudflare_zone.zah.id
+  name              = "www"
+  type              = "A"
+  proxied           = true
+  value             = google_compute_instance.zah.network_interface.0.access_config.0.nat_ip
 }
